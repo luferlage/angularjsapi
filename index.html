@@ -4,107 +4,19 @@
 	<meta charset="utf-8"/>
 	<title>Gestão de Pessoas</title>
 	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/style.css">
 	<link rel="stylesheet" type="text/css" href="css/font-awesome-4.7.0/css/font-awesome.css">
-	<style type="text/css">
-		.jumbotron{
-			width: 960px;
-			margin-left: auto;
-			margin-right: auto;
-			margin-top: 20px;
-			background-color: white;
-		}
-		.form-control{
-			margin-top: 10px;
-			margin-bottom: 10px;
-		}
-		.selecionado{
-			background-color: #ECECEC;
-		}
-		.negrito{
-			font-weight: bold;
-		}
-		a:link, a:visited,a:hover,a:active {
-    		color: white;
-		}
-	</style>
-	<script src="js/angular.min.js"></script>
-	<script src="js/angular-locale_pt-br.js"></script>
-	<script type="text/javascript">
-		angular.module("gestaoPessoas", []);
-		angular.module("gestaoPessoas").controller('gestaoPessoasCtrl', function($scope, $filter, $http)
-		{
-			$scope.app = "Gestão de Pessoas";
+	
+	<script src="lib/angular.min.js"></script>
+	<script src="lib/angular-locale_pt-br.js"></script>
+	<script src="js/app.js"></script>
+	<script src="js/controllers/gestaoPessoas.js"></script>
 
-			var carregarPessoas = function (){
-		        $http.get('http://localhost:8080/api/pessoas')
-		        .then(function sucesso(response){
-		            //window.alert("Carregou com sucesso!");
-		            $scope.pessoas = response.data;
-		        }, function falha(response){
-		            window.alert("Falha ao carregar dados");
-		            console.log("Erro ao carregar dados :" + response.data);
-		        })
-		    };
-			//Evitar ao maximo ler $scope dentro do controller
-			$scope.adicionarPessoa = function(pessoa){
-		        $http.post('http://localhost:8080/api/pessoas', pessoa)
-		        .then(function sucesso(response){
-		            //window.alert("Pessoa cadastrada com sucesso");
-		            delete $scope.pessoa;
-		            $scope.pessoaForm.$setPristine();
-		            carregarPessoas();
-		        }, function falha(response){
-		            window.alert("Falha ao cadastrar pessoa");
-		            console.log("Erro ao cadastrar pessoa :" + response.data);
-		        })
-		    }
-		    
-			$scope.apagarPessoas = function(pessoas)
-			{
-				//Reatribuir em pessoas as pessoas não selecionadas
-				$scope.pessoas = pessoas.filter(function(pessoa)
-				{
-					//if(!pessoa.selecionado) return pessoa;
-					if(!pessoa.selecionado)
-					{
-						return pessoa;
-					}
-					else
-					{
-						//if(window.confirm("Tem certeza que deseja remover esta pessoa?"))
-						//{
-				            $http.delete('http://localhost:8080/api/pessoas/' + pessoa.idPessoa)
-				            .then(function sucesso(response){
-				                //window.alert("Pessoa removida com sucesso");
-				            }, function falha(response){
-				                window.alert("Falha ao remover pessoa");
-				                console.log("Erro ao remover pessoa :" + response.data);
-				            })
-				        //}
-					}	
-				});
-			};
-			$scope.isPessoaSelecionado = function (pessoas)
-			{
-				return pessoas.some(function(pessoa)
-				{
-					return pessoa.selecionado;
-				});
-			};
-			$scope.ordernarPor = function (campo)
-			{
-				$scope.criterioDeOrdenacao = campo;
-				$scope.direcaoDaOrdenacao = !$scope.direcaoDaOrdenacao;
-			};
-
-			carregarPessoas();
-		});
-	</script>
 </head>
 <body ng-controller="gestaoPessoasCtrl">
 	<div class="jumbotron">
 		<h3><i class="fa fa-users"></i> {{app}}  </h3>
-		<input class="form-control" type="text" ng-model="criterioDeBusca" placeholder="O que você está buscando" >
+		<input class="form-control" type="text" ng-model="criterioDeBusca" placeholder="Buscar" >
 		<table ng-show="pessoas.length > 0" class="table table-hover">
 			<tr>
 				<thead class="thead-dark">
@@ -150,7 +62,6 @@
 			O campo email deve ter o formato xpto@xpto.com!		
 		</div>
 	</div>
-	<!-- Chamada em ajax, usando o protocolo file:// ao inves de um servidor web, o navegador chrome vai bloquear por conta da politica da mesma origem - same origin policy -->
 	<div ng-include="'footer.html'"></div>
 </body>
 </html>
