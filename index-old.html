@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html ng-app="listaTelefonica">
+<head>
+	<meta charset="utf-8"/>
+	<title>Lista Telefônica</title>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+	<style type="text/css">
+		.jumbotron{
+			width: 700px;
+			text-align: center;
+			margin-left: auto;
+			margin-right: auto;
+			margin-top: 20px;
+		}
+		.form-control{
+			margin-top: 10px;
+		}
+		.selecionado{
+			background-color: yellow;
+		}
+		.negrito{
+			font-weight: bold;
+		}
+	</style>
+	<script src="js/angular.min.js"></script>
+	<script src="js/angular-locale_pt-br.js"></script>
+	<script type="text/javascript">
+		angular.module("listaTelefonica", []);
+		angular.module("listaTelefonica").controller('listaTelefonicaCtrl', function($scope, $filter, $http)
+		{
+			$scope.app = "Lista Telefonica";
+			$scope.contatos = [];
+			$scope.contatos = 
+			[
+				{nome:$filter('uppercase')("Luiz Fernando"), telefone:"999510066", operadora: {nome: "Vivo", codigo: "15", categoria: "Celular"}, data: new Date(),  cor: "yellow"},
+				{nome:"Olavo Fonseca", telefone:"999510065", operadora: {nome: "Oi", codigo: "14", categoria: "Celular"}, data: new Date(), cor: "red"},
+				{nome:"Jessica Rocha", telefone:"999510064", operadora: {nome: "Tim", codigo: "41", categoria: "Celular"}, data: new Date(), cor: "blue"}
+			];
+
+			$scope.operadoras = 
+			[
+				{nome:"Oi", codigo: 14, categoria:"Celular", preco: 2},
+				{nome:"Vivo", codigo: 15,categoria:"Celular", preco: 1},
+				{nome:"Tim", codigo: 41, categoria:"Celular", preco: 3},
+				{nome:"GVT", codigo: 25, categoria:"Fixo", preco: 1},
+				{nome:"Embratel", codigo: 21, categoria:"Fixo", preco: 2}
+			];
+
+			var carregarContatos = function ()
+			{
+				$http.get("http://localhost:8080/api/pessoas").success(function(data,status){
+					console.log(data);					
+					$scope.contatos = data;
+				});
+			}
+
+			//Evitar ao maximo ler $scope dentro do controller
+			$scope.adicionarContato = function (contato)
+			{
+				$scope.contatos.push(angular.copy(contato));
+				delete $scope.contato;
+				$scope.contatoForm.$setPristine();
+			};
+			// PRIMEIRA FORMA DE USAR ng-class $scope.classe1 = "selecionado";
+			// PRIMEIRA FORMA DE USAR ng-class $scope.classe2 = "negrito";
+			$scope.apagarContatos = function(contatos)
+			{
+				//Reatribuir em contatos os contatos não selecionados
+				$scope.contatos = contatos.filter(function(contato)
+				{
+					if(!contato.selecionado) return contato;
+				});
+			};
+			$scope.isContatoSelecionado = function (contatos)
+			{
+				return contatos.some(function(contato)
+				{
+					return contato.selecionado;
+				});
+			};
+			$scope.ordernarPor = function (campo)
+			{
+				$scope.criterioDeOrdenacao = campo;
+				$scope.direcaoDaOrdenacao = !$scope.direcaoDaOrdenacao;
+			};
+
+			carregarContatos();
+		});
+		//ng-bind - pega alguma coisa de $scope e (exibe) envia para view;
+		//ng-Model - pega alguma coisa da view e define no $scope - usados geralmente em inputs, selects e textarea;
+	</script>
+</head>
+<body ng-controller="listaTelefonicaCtrl">
+	<div class="jumbotron">
+		<h3>{{app}}</h3>
+		<input class="form-control" type="text" ng-model="criterioDeBusca" placeholder="O que você está buscando" >
+		<table ng-show="contatos.length > 0" class="table">
+			<tr>
+				<th></th>
+				<th><a href="" ng-click="ordernarPor('nome')">Nome</a></th>
+				<th><a href="" ng-click="ordernarPor('telefone')">Telefone</a></th>
+				<th>Operadora</th>
+				<th>Data</th>
+				<th></th>
+			</tr>
+			<!-- PRIMEIRA FORMA DE USAR ng-class --//-- <tr ng-class="[classe1, classe2]" ng-repeat="contato in contatos">-->
+			<tr ng-class="{'selecionado negrito': contato.selecionado}" ng-repeat="contato in contatos | filter:{nome:criterioDeBusca} | orderBy:criterioDeOrdenacao:direcaoDaOrdenacao">
+				<td><input type="checkbox" ng-model="contato.selecionado"></td>
+				<td>{{contato.nome | limitTo:10}}</td>
+				<td>{{contato.telefone}}</td>
+				<td>{{contato.operadora.nome | lowercase}}</td>
+				<!--<td><div style="width:20px; height: 20px;" ng-style="{'background-color': contato.cor}"></div></td>-->
+				<td>{{contato.data | date:'dd/MM/yyyy HH:mm'}}</td>
+			</tr>
+			<!-- Outra forma de usar ng-repeat
+			<tr ng-repeat="contato in contatos">
+				<td ng-repeat="(key, value) in contato">
+					{{key + '' + value}}
+				</td>
+			</tr>-->
+		</table>
+		<hr>
+		<form name="contatoForm">
+			<!-- ngOptions - melhor solucao para renderizar opcoes do <select> -->
+			<input class="form-control" type="text" ng-model="contato.nome" placeholder="Nome" name="nome" ng-required="true" ng-minLength="10">
+			<input class="form-control" type="text" ng-model="contato.telefone" placeholder="Telefone" name="telefone" ng-required="true" ng-pattern="/^\d{4,5}-\d{4}$/">
+			<!--<select class="form-control" ng-model="contato.operadora" ng-options="operadora.nome group by operadora.categoria for operadora in operadoras"> USANDO O GROUP BY PARA CRIAR OPTGROUP-->
+			<select class="form-control" ng-model="contato.operadora" ng-options="operadora.nome + ' (' + (operadora.preco | currency) + ')' group by operadora.categoria for operadora in operadoras | orderBy:'nome'">
+				<option value="">Selecione uma operadora</option>
+			</select>
+			<button class="btn btn-primary btn-block" type="submit" ng-click="adicionarContato(contato)" ng-disabled="contatoForm.$invalid">Adicionar Contato</button>
+			<!-- ng-disabled - desabilitar um elemento alvo-->
+			<!-- Apagando contato com funcao em ng-disabled <button class="btn btn-danger btn-block" type="submit" ng-click="apagarContatos(contatos)" ng-disabled="!isContatoSelecionado(contatos)">Apagar Contatos</button>-->
+			<!-- Apagando contato com funcao em ng-show ou ng-hide --//-- observa-se que o ng-show e ng-hide trabalham apenas com visibilidade do(s) elemento(s) <button class="btn btn-danger btn-block" type="submit" ng-click="apagarContatos(contatos)" ng-show="isContatoSelecionado(contatos)">Apagar Contatos</button>-->
+			<!-- Apagando contato com funcao em ng-if --//-- este sim elimina o elemento, não possibilitando o display: none-->
+			<button class="btn btn-danger btn-block" type="submit" ng-click="apagarContatos(contatos)" ng-if="isContatoSelecionado(contatos)">Apagar Contatos</button>
+		</form>
+		<div class="alert alert-danger" ng-show="contatoForm.nome.$error.required && contatoForm.nome.$dirty">
+			Por favor, preencha o campo nome!		
+		</div>
+		<div class="alert alert-danger" ng-show="contatoForm.nome.$error.minlength">
+			O campo nome deve conter no minimo 10 caracteres!		
+		</div>
+		<div class="alert alert-danger" ng-show="contatoForm.telefone.$error.required && contatoForm.telefone.$dirty">
+			Por favor, preencha o campo telefone!		
+		</div>	
+		<div class="alert alert-danger" ng-show="contatoForm.telefone.$error.pattern">
+			O campo telefone deve ter o formato DDDDD-DDDD.		
+		</div>	
+	</div>
+	<!-- Chamada em ajax, usando o protocolo file:// ao inves de um servidor web, o navegador chrome vai bloquear por conta da politica da mesma origem - same origin policy -->
+	<!--<div ng-include="'footer.html'"></div>-->
+</body>
+</html>
