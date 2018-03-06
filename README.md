@@ -3,7 +3,7 @@ API RESTFULL JAVA EE, SPRING FRAMEWORK, POSTGREESQL 10, ANGULARJS
 INSTRUÇÕES PARA UTILIZAÇÃO DESTE PROJETO:
 
 1) O repositorio angularjs+api deverá ser clonado para um ambiente webserver de sua preferência;
-2) Clonar o repositório APIRESTFULLJAVACRUD (https://br-luferlage@bitbucket.org/br-luferlage/apirestfulljavacrud.git) e executar o projeto SPRING BOOT APP, para colocar a API em funcionamento;
+2) Clonar o repositório APIRESTFULLJAVACRUD (https://github.com/luferlage/APIRESTFULLJAVACRUD.git) e executar o projeto SPRING BOOT APP, para colocar a API em funcionamento;
 3) Executar o arquivo index.html para obter acesso a interface em ANGULARJS que interage com a API RESTFULL Java;
 
 Maiores informações e conhecer outros projetos desenvolvidos por mim, estou a disposição!
